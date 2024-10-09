@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            background-color: #f0f2f5;
+        }
+
+        .container {
+            background: white;
+            padding: 2rem;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            text-align: center;
+            min-width: 320px;
+        }
+
+        #weekInfo {
+            font-size: 1.2rem;
+            margin: 1rem 0;
+            color: #333;
+            word-break: keep-all;
+        }
+
+        button {
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 1rem;
+            transition: background-color 0.3s;
+            margin: 5px;
+        }
+
+        button:hover {
+            background-color: #45a049;
+        }
+
+        .copied {
+            color: #4CAF50;
+            margin-top: 10px;
+            display: none;
+        }
+
+        .date-selector {
+            margin: 1rem 0;
+            padding: 10px;
+        }
+
+        input[type="date"] {
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 1rem;
+            margin-right: 10px;
+        }
+
+        .button-group {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        #todayButton {
+            background-color: #2196F3;
+        }
+
+        #todayButton:hover {
+            background-color: #1976D2;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="date-selector">
+            <input type="date" id="dateSelector">
+        </div>
+        <button id="todayButton">오늘 날짜로</button>
+        <div id="weekInfo"></div>
+        <div class="button-group">
+            <button id="copyButton">클립보드에 복사</button>
+        </div>
+        <div id="copiedMessage" class="copied">복사되었습니다!</div>
+    </div>
+
+    <script>
+        function getWeekNumber(date) {
+            const firstDayOfYear = new Date(date.getFullYear(), 0, 1);
+            const pastDaysOfYear = (date - firstDayOfYear) / 86400000;
+            return Math.ceil((pastDaysOfYear + firstDayOfYear.getDay() + 1) / 7);
+        }
+
+        function getWeekRange(date) {
+            const currentDate = new Date(date);
+            const day = currentDate.getDay();
+            
+            const monday = new Date(currentDate);
+            monday.setDate(currentDate.getDate() - (day === 0 ? 6 : day - 1));
+            
+            const sunday = new Date(monday);
+            sunday.setDate(monday.getDate() + 6);
+
+            const formatDate = (date) => {
+                return `${date.getMonth() + 1}월 ${date.getDate()}일`;
+            };
+
+            return `${formatDate(monday)}(월) ~ ${formatDate(sunday)}(일)`;
+        }
+
+        function updateWeekInfo(selectedDate = new Date()) {
+            const weekNumber = getWeekNumber(selectedDate);
+            const totalWeeks = 52;
+            const weekRange = getWeekRange(selectedDate);
+            const year = selectedDate.getFullYear();
+            
+            const weekInfo = `${year}년도 ${weekNumber} / ${totalWeeks}주차, ${weekRange}`;
+            document.getElementById('weekInfo').textContent = weekInfo;
+            return weekInfo;
+        }
+
+        function formatDateForInput(date) {
+            return date.toISOString().split('T')[0];
+        }
+
+        // 날짜 선택기 초기화
+        const dateSelector = document.getElementById('dateSelector');
+        dateSelector.value = formatDateForInput(new Date());
+
+        // 날짜 변경 이벤트 리스너
+        dateSelector.addEventListener('change', (e) => {
+            const selectedDate = new Date(e.target.value);
+            updateWeekInfo(selectedDate);
+        });
+
+        // 오늘 날짜 버튼 이벤트 리스너
+        document.getElementById('todayButton').addEventListener('click', () => {
+            const today = new Date();
+            dateSelector.value = formatDateForInput(today);
+            updateWeekInfo(today);
+        });
+
+        // 복사 버튼 이벤트 리스너
+        document.getElementById('copyButton').addEventListener('click', () => {
+            const weekInfo = document.getElementById('weekInfo').textContent;
+            navigator.clipboard.writeText(weekInfo).then(() => {
+                const copiedMessage = document.getElementById('copiedMessage');
+                copiedMessage.style.display = 'block';
+                setTimeout(() => {
+                    copiedMessage.style.display = 'none';
+                }, 2000);
+            });
+        });
+
+        // 초기 업데이트
+        updateWeekInfo(new Date());
+    </script>
+</body>
+</html>
